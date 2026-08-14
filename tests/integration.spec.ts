@@ -34,6 +34,8 @@ describe('real harness assembly', () => {
     const schemas = ctx.tools.schemas()
     const names = schemas.map(s => s.name).sort()
     expect(names).toEqual([
+      'docx_create',
+      'docx_read',
       'pdf_create',
       'pdf_read',
       'pptx_create',

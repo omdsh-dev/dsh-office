@@ -11,12 +11,14 @@
  *   - xlsx_read / xlsx_write / xlsx_edit  (exceljs)
  *   - pdf_create / pdf_read               (pdfkit + pdf-parse, CJK-aware)
  *   - pptx_create / pptx_read             (pptxgenjs + jszip)
+ *   - docx_create / docx_read             (docx + mammoth)
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import { registerExcelTools } from './excel.js'
 import { registerPdfTools } from './pdf.js'
 import { registerPptTools } from './ppt.js'
+import { registerDocxTools } from './docx.js'
 
 export const name = 'dsh-office'
 
@@ -28,4 +30,5 @@ export function apply(ctx: Context): void {
   registerExcelTools(ctx)
   registerPdfTools(ctx)
   registerPptTools(ctx)
+  registerDocxTools(ctx)
 }

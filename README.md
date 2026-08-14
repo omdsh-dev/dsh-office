@@ -18,15 +18,32 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 
 ## Install
 
+Install into a dsh profile with the official plugin command (this package
+declares a `dsh.bundle` manifest, so `dsh plugin` activates it as a bundle
+layer):
+
+```sh
+dsh plugin --profile <name> add @huiliyi37/dsh-office
+dsh --profile <name>
+```
+
+The first `dsh plugin` call initializes the profile (`@deepseek-ai/dsh-base`
+is its first bundle) and appends this package to the profile's `bundles` list.
+After that, launching the profile loads the plugin and registers all seven
+tools automatically.
+
+Manual alternative — install the package anywhere Node resolution can find it
+and reference it from your own `cordis.patch.yml`:
+
 ```sh
 npm install @huiliyi37/dsh-office
 ```
 
-Then load the plugin in your harness composition (`cordis.yml`):
-
 ```yaml
-- id: dsh-office
-  name: '@huiliyi37/dsh-office'
+# cordis.patch.yml
+- insert:
+    - id: dsh-office
+      name: '@huiliyi37/dsh-office'
 ```
 
 ## Usage examples

@@ -1,5 +1,7 @@
 # @huiliyi37/dsh-office
 
+English | [中文](README.zh.md)
+
 Office document tools for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): generate, read, and edit spreadsheets (`.xlsx`), PDFs, and presentations (`.pptx`).
 
 Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) terminal coding agent (Apache-2.0 licensed upstream), adapted to the dsh cordis tool model.

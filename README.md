@@ -18,11 +18,9 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 | `pptx_create` | Generate a `.pptx` deck from slide definitions (title / section / content / two-column / image / table / chart), with optional theme and speaker notes |
 | `pptx_read` | Extract slide text as markdown, optionally including speaker notes |
 
-## Install
+## Install & load
 
-Install into a dsh profile with the official plugin command (this package
-declares a `dsh.bundle` manifest, so `dsh plugin` activates it as a bundle
-layer):
+### Full load (all 9 tools)
 
 ```sh
 dsh plugin --profile <name> add @huiliyi37/dsh-office
@@ -31,11 +29,40 @@ dsh --profile <name>
 
 The first `dsh plugin` call initializes the profile (`@deepseek-ai/dsh-base`
 is its first bundle) and appends this package to the profile's `bundles` list.
-After that, launching the profile loads the plugin and registers all seven
-tools automatically.
+Launching the profile then registers all tools automatically.
 
-Manual alternative — install the package anywhere Node resolution can find it
-and reference it from your own `cordis.patch.yml`:
+### Load only the families you need
+
+Pass a `config` row in your profile's `cordis.patch.yml` to enable/disable
+per family. Omitted families stay enabled; set a family to `false` to
+exclude it (useful to keep the tool surface small):
+
+```yaml
+# cordis.patch.yml
+- insert:
+    - id: dsh-office
+      name: '@huiliyi37/dsh-office'
+      config:
+        enable:
+          xlsx: false      # skip spreadsheet tools
+          pdf: true        # keep PDF tools
+          ppt: false       # skip presentations
+          docx: true       # keep Word tools
+```
+
+Families: `xlsx` (xlsx_read/write/edit), `pdf` (pdf_create/read),
+`ppt` (pptx_create/read), `docx` (docx_create/read).
+
+### Uninstall
+
+```sh
+dsh plugin --profile <name> remove @huiliyi37/dsh-office
+```
+
+### Manual alternative
+
+Install the package anywhere Node resolution can find it and reference it
+from your own `cordis.patch.yml` (same `config.enable` switches apply):
 
 ```sh
 npm install @huiliyi37/dsh-office

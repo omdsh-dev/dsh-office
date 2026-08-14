@@ -1,3 +1,11 @@
 - insert:
     - id: dsh-office
       name: '@huiliyi37/dsh-office'
+      # Load every family (default). To load only a subset, list the families
+      # you want and set the others to false — e.g. PDF + DOCX only:
+      # config:
+      #   enable:
+      #     xlsx: false
+      #     pdf: true
+      #     ppt: false
+      #     docx: true

@@ -16,18 +16,45 @@
 | `pptx_create` | 按幻灯片定义生成 `.pptx`（标题 / 章节 / 内容 / 双栏 / 图片 / 表格 / 图表），支持主题配色与演讲者备注 |
 | `pptx_read` | 将幻灯片文本提取为 markdown，可选包含演讲者备注 |
 
-## 安装
+## 安装与装载
 
-使用官方插件命令安装到 dsh profile（本包声明了 `dsh.bundle` manifest，`dsh plugin` 会将其作为 bundle 层激活）：
+### 全量装载（9 个工具）
 
 ```sh
 dsh plugin --profile <名称> add @huiliyi37/dsh-office
 dsh --profile <名称>
 ```
 
-首次执行 `dsh plugin` 会初始化 profile（`@deepseek-ai/dsh-base` 作为首个 bundle）并把本包追加到 profile 的 `bundles` 列表。之后启动该 profile 即自动加载插件并注册全部七个工具。
+首次执行 `dsh plugin` 会初始化 profile（`@deepseek-ai/dsh-base` 作为首个 bundle）并把本包追加到 profile 的 `bundles` 列表。之后启动该 profile 即自动注册全部工具。
 
-手动安装备选——把包装到 Node 可解析的位置，并在自己的 `cordis.patch.yml` 中引用：
+### 按需装载（只装需要的工具族）
+
+在 profile 的 `cordis.patch.yml` 中传入 `config` 行按族开关。未列出的族保持启用；设为 `false` 即排除（适合控制工具面大小）：
+
+```yaml
+# cordis.patch.yml
+- insert:
+    - id: dsh-office
+      name: '@huiliyi37/dsh-office'
+      config:
+        enable:
+          xlsx: false      # 不用电子表格工具
+          pdf: true        # 保留 PDF 工具
+          ppt: false       # 不用演示文稿
+          docx: true       # 保留 Word 工具
+```
+
+工具族：`xlsx`（xlsx_read/write/edit）、`pdf`（pdf_create/read）、`ppt`（pptx_create/read）、`docx`（docx_create/read）。
+
+### 卸载
+
+```sh
+dsh plugin --profile <名称> remove @huiliyi37/dsh-office
+```
+
+### 手动安装备选
+
+把包装到 Node 可解析的位置，并在自己的 `cordis.patch.yml` 中引用（同样支持 `config.enable` 开关）：
 
 ```sh
 npm install @huiliyi37/dsh-office

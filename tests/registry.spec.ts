@@ -41,6 +41,18 @@ describe('dsh-office plugin', () => {
     ])
   })
 
+  it('registers only enabled families when config narrows the surface', () => {
+    const { ctx, definitions } = makeCtx()
+    apply(ctx as never, { enable: { xlsx: false, pdf: true, ppt: false, docx: true } })
+    const names = definitions.map(d => d.name).sort()
+    expect(names).toEqual([
+      'docx_create',
+      'docx_read',
+      'pdf_create',
+      'pdf_read',
+    ])
+  })
+
   it('every tool carries a description, parameters, output schema and execute', () => {
     const { ctx, definitions } = makeCtx()
     apply(ctx as never)

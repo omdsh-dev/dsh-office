@@ -1,13 +1,14 @@
 /**
- * @module @omdsh/dsh-office
+ * @module @huiliyi37/dsh-office
  *
  * Office document tools for DeepSeek Harness: generate, read, and edit
- * spreadsheets (.xlsx), PDFs, and presentations (.pptx).
+ * spreadsheets (.xlsx), PDFs, presentations (.pptx), and Word documents
+ * (.docx).
  *
  * Ported from the Tianshu terminal coding agent's office plugins
- * (Apache-2.0 licensed upstream, https://github.com/Tianshu-Tui/Tianshu-Tui).
+ * (Apache-2.0 licensed upstream, https://github.com/Tianshu-Tui).
  *
- * Registered tools:
+ * Registered tools (all enabled by default; disable per family via config):
  *   - xlsx_read / xlsx_write / xlsx_edit  (exceljs)
  *   - pdf_create / pdf_read               (pdfkit + pdf-parse, CJK-aware)
  *   - pptx_create / pptx_read             (pptxgenjs + jszip)
@@ -15,6 +16,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
 import { registerExcelTools } from './excel.js'
 import { registerPdfTools } from './pdf.js'
 import { registerPptTools } from './ppt.js'
@@ -25,10 +27,31 @@ export const name = 'dsh-office'
 /** Requires the tool registry seam. */
 export const inject = ['tools'] as const
 
-/** Register all office tools on the shared tool registry. */
-export function apply(ctx: Context): void {
-  registerExcelTools(ctx)
-  registerPdfTools(ctx)
-  registerPptTools(ctx)
-  registerDocxTools(ctx)
+/** Per-family enable switches. Families omitted from `enable` stay enabled. */
+export interface Config {
+  enable?: {
+    xlsx?: boolean
+    pdf?: boolean
+    ppt?: boolean
+    docx?: boolean
+  }
+}
+
+/** Schemastery configuration for loader validation. */
+export const Config: z<Config> = z.object({
+  enable: z.object({
+    xlsx: z.boolean().required(false),
+    pdf: z.boolean().required(false),
+    ppt: z.boolean().required(false),
+    docx: z.boolean().required(false),
+  }).required(false),
+})
+
+/** Register office tools on the shared tool registry, honoring family switches. */
+export function apply(ctx: Context, config: Config = {}): void {
+  const enable = config.enable ?? {}
+  if (enable.xlsx !== false) registerExcelTools(ctx)
+  if (enable.pdf !== false) registerPdfTools(ctx)
+  if (enable.ppt !== false) registerPptTools(ctx)
+  if (enable.docx !== false) registerDocxTools(ctx)
 }

@@ -91,6 +91,23 @@ describe('xlsx tools', () => {
     expect(read.content).toContain('C')
   })
 
+  it('xlsx_read truncates with a continuation hint when max_rows is exceeded', async () => {
+    const { tools } = collect()
+    const file = join(dir, 'wide.xlsx')
+    const rows = [['H'], ...Array.from({ length: 40 }, (_, i) => [`r${i + 1}`])]
+    await tools['xlsx_write']!.execute({ file_path: file, data: rows }, noExec)
+
+    const limited = await tools['xlsx_read']!.execute({ file_path: file, sheet: 'Sheet1', max_rows: 10 }, noExec) as { content: string }
+    expect(limited.content).toContain('r1')
+    expect(limited.content).not.toContain('r35')
+    expect(limited.content).toMatch(/Continue with range_start: "A11"/)
+
+    // Follow the hint to read the next chunk.
+    const next = await tools['xlsx_read']!.execute({ file_path: file, sheet: 'Sheet1', range_start: 'A11', max_rows: 10 }, noExec) as { content: string }
+    expect(next.content).toContain('| r11 |')
+    expect(next.content).not.toContain('| r1 |')
+  })
+
   it('xlsx_read on a missing file throws with a clear message', async () => {
     const { tools } = collect()
     await expect(

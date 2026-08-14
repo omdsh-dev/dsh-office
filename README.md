@@ -48,6 +48,16 @@ npm install @huiliyi37/dsh-office
       name: '@huiliyi37/dsh-office'
 ```
 
+## Skill
+
+The package ships a usage skill (`skills/SKILL.md`, anthropics-compatible
+format) that teaches the model large-file pagination and generation
+discipline. Install it into a skill discovery root:
+
+```sh
+mkdir -p ~/.dsh/skills && cp -r node_modules/@huiliyi37/dsh-office/skills/dsh-office ~/.dsh/skills/
+```
+
 ## Usage examples
 
 ```jsonc

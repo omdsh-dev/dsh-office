@@ -78,6 +78,7 @@ async function xlsxRead(params: {
   sheet?: string
   range_start?: string
   range_end?: string
+  max_rows?: number
 }): Promise<string> {
   const filePath = params.file_path
   if (!existsSync(filePath)) {
@@ -166,8 +167,10 @@ async function xlsxRead(params: {
     return `Sheet "${sheetName}" is empty.`
   }
 
-  // Render markdown table (truncate at 200 rows for context safety)
-  const maxRows = Math.min(rows.length, 200)
+  // Render markdown table, truncated at the page boundary (default 200 rows
+  // for context safety). The continuation hint hands the model the exact
+  // range_start to read the next chunk.
+  const maxRows = Math.min(Math.max(1, params.max_rows ?? 200), 500)
   const displayRows = rows.slice(0, maxRows)
   const colWidths: number[] = []
   for (let c = 0; c < (displayRows[0]?.length || 0); c++) {
@@ -190,7 +193,7 @@ async function xlsxRead(params: {
   }
 
   const suffix = rows.length > maxRows
-    ? `\n\n(Showing ${maxRows} of ${rows.length} rows. Use range_start/range_end for pagination.)`
+    ? `\n\n(Showing ${maxRows} of ${rows.length} rows. Continue with range_start: "A${startRow + maxRows}".)`
     : ''
 
   return `Sheet "${sheetName}" (${rows.length} rows × ${endCol - startCol + 1} cols):\n\n${mdRows.join('\n')}${suffix}`
@@ -340,12 +343,13 @@ async function xlsxEdit(params: {
 export function registerExcelTools(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'xlsx_read',
-    description: 'Read a .xlsx file: list all sheets, or read a specific sheet as a markdown table. Supports range_start/range_end for large files. Formula cells show the formula text.',
+    description: 'Read a .xlsx file: list all sheets, or read a specific sheet as a markdown table. Supports range_start/range_end and max_rows for large files (a continuation range_start hint is appended on truncation). Formula cells show the formula text.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to the .xlsx file' },
       sheet: { type: 'string', description: 'Sheet name to read (omit to list sheets)' },
       range_start: { type: 'string', description: 'Start cell e.g. "A1"' },
       range_end: { type: 'string', description: 'End cell e.g. "D20"' },
+      max_rows: { type: 'integer', description: 'Max rows per read (1-500, default 200); a continuation range_start hint is appended when truncated' },
     },
     output: textOutput,
     execute: async (args) => ({ content: await xlsxRead(args) }),

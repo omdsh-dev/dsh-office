@@ -68,6 +68,14 @@ npm install @huiliyi37/dsh-office
 }
 ```
 
+## Skill（使用指导）
+
+本包附带使用指导 skill（`skills/SKILL.md`，anthropics 兼容格式），教会模型大文件分页读取与生成纪律。安装到 skill 发现根目录：
+
+```sh
+mkdir -p ~/.dsh/skills && cp -r node_modules/@huiliyi37/dsh-office/skills/dsh-office ~/.dsh/skills/
+```
+
 ## 开发
 
 ```sh

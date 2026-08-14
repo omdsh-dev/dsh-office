@@ -78,6 +78,50 @@ describe('pdf tools', () => {
     expect(read.content).toContain('你好')
   })
 
+  it('pdf_read supports start_page/end_page and page markers', async () => {
+    const { tools } = collect()
+    const file = join(dir, 'multi.pdf')
+    await tools['pdf_create']!.execute({
+      destination_path: file,
+      content: [
+        { type: 'paragraph', text: 'Alpha page content' },
+      ],
+    }, noExec)
+    // Build a 2-page pdf via pdfkit directly to control page boundaries.
+    await tools['pdf_create']!.execute({
+      destination_path: file,
+      content: [
+        { type: 'paragraph', text: 'First page text here' },
+      ],
+    }, noExec)
+    // pdf_create content is paginated by pdfkit; generate two explicit pages.
+    const PDFDocument = (await import('pdfkit')).default
+    const { writeFileSync } = await import('node:fs')
+    const doc = new PDFDocument({ size: 'A4' })
+    const chunks: Buffer[] = []
+    doc.on('data', (c: Buffer) => chunks.push(c))
+    doc.on('end', () => writeFileSync(file, Buffer.concat(chunks)))
+    doc.fontSize(12).text('PAGEONE')
+    doc.addPage().fontSize(12).text('PAGETWO')
+    doc.end()
+    await new Promise(r => setTimeout(r, 300))
+
+    const full = await tools['pdf_read']!.execute({ file_path: file }, noExec) as { content: string }
+    expect(full.content).toContain('--- Page 1 ---')
+    expect(full.content).toContain('--- Page 2 ---')
+    expect(full.content).toContain('PAGEONE')
+    expect(full.content).toContain('PAGETWO')
+
+    const first = await tools['pdf_read']!.execute({ file_path: file, start_page: 1, end_page: 1 }, noExec) as { content: string }
+    expect(first.content).toContain('PAGEONE')
+    expect(first.content).not.toContain('PAGETWO')
+    expect(first.content).toContain('Continue with start_page: 2')
+
+    const second = await tools['pdf_read']!.execute({ file_path: file, start_page: 2 }, noExec) as { content: string }
+    expect(second.content).toContain('PAGETWO')
+    expect(second.content).not.toContain('PAGEONE')
+  })
+
   it('pdf_read on a missing file throws', async () => {
     const { tools } = collect()
     await expect(

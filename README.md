@@ -1,4 +1,4 @@
-# @omdsh/dsh-office
+# @huiliyi37/dsh-office
 
 Office document tools for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): generate, read, and edit spreadsheets (`.xlsx`), PDFs, and presentations (`.pptx`).
 
@@ -19,14 +19,14 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 ## Install
 
 ```sh
-npm install @omdsh/dsh-office
+npm install @huiliyi37/dsh-office
 ```
 
 Then load the plugin in your harness composition (`cordis.yml`):
 
 ```yaml
 - id: dsh-office
-  name: '@omdsh/dsh-office'
+  name: '@huiliyi37/dsh-office'
 ```
 
 ## Usage examples

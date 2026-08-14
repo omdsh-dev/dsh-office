@@ -1,5 +1,5 @@
 {
-  "name": "@omdsh/dsh-office",
+  "name": "@huiliyi37/dsh-office",
   "version": "0.1.0",
   "description": "Office document tools (xlsx / pdf / pptx) for DeepSeek Harness: generate, read, and edit spreadsheets, PDFs, and presentations",
   "type": "module",
@@ -18,6 +18,9 @@
     "LICENSE"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "dsh-plugin",
     "deepseek-harness",

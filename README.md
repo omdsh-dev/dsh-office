@@ -84,4 +84,6 @@ npm test        # vitest: round-trip tests through the tool execute path
 
 ## License
 
-MIT. Tool logic ported from the Tianshu office plugins (Apache-2.0, copyright Tianshu contributors); see file headers for per-module provenance.
+Apache License 2.0. Tool logic ported from the Tianshu office plugins
+(also Apache-2.0 licensed, copyright Tianshu contributors); see file
+headers for per-module provenance.

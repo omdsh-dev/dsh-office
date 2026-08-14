@@ -1,0 +1,56 @@
+{
+  "name": "@omdsh/dsh-office",
+  "version": "0.1.0",
+  "description": "Office document tools (xlsx / pdf / pptx) for DeepSeek Harness: generate, read, and edit spreadsheets, PDFs, and presentations",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "office",
+    "xlsx",
+    "pdf",
+    "pptx",
+    "cordis"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.15.0",
+    "pptxgenjs": "^3.12.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.0.1-rc.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "0.0.1-rc.1",
+    "@types/fontkit": "^2.0.9",
+    "@types/node": "^26.2.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/pdfkit": "^0.17.6",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

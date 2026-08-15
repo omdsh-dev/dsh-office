@@ -13,6 +13,8 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 | `xlsx_read` | List sheets of a `.xlsx`, or read one sheet as a markdown table (range-limited for large files; formula text preserved) |
 | `xlsx_write` | Write a 2D array to a new `.xlsx` (formula cells, header bold, column widths, number formats) |
 | `xlsx_edit` | Edit an existing `.xlsx`: add sheets, update cells (value or formula), append rows |
+| `xlsx_recalc` | Recalculate every formula with a lightweight pure-TS engine and report error values (`#REF!`, `#DIV/0!`, `#VALUE!`, `#N/A`, `#NAME?`, `#NUM!`) with locations |
+| `xlsx_audit` | Statically audit formula structure: array-formula traps, aggregation ranges missing rows, formulas overwritten by hardcoded values, inconsistent formulas in a column, self-references, division by zero |
 | `pdf_create` | Generate a real PDF with headings, paragraphs, tables, lists, code blocks and footer page numbers; CJK text renders via an auto-detected system font |
 | `pdf_read` | Extract text from a PDF for reading into context |
 | `pptx_create` | Generate a `.pptx` deck from slide definitions (title / section / content / two-column / image / table / chart), with optional theme and speaker notes |

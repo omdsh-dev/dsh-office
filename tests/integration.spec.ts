@@ -30,7 +30,7 @@ afterAll(async () => {
 })
 
 describe('real harness assembly', () => {
-  it('registers all seven tools on the real registry', () => {
+  it('registers all nine tools on the real registry', () => {
     const schemas = ctx.tools.schemas()
     const names = schemas.map(s => s.name).sort()
     expect(names).toEqual([
@@ -40,8 +40,10 @@ describe('real harness assembly', () => {
       'pdf_read',
       'pptx_create',
       'pptx_read',
+      'xlsx_audit',
       'xlsx_edit',
       'xlsx_read',
+      'xlsx_recalc',
       'xlsx_write',
     ])
     // Every schema carries parameters for the model.

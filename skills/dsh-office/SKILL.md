@@ -6,7 +6,7 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 
 # dsh-office（Office 文档工具）
 
-@huiliyi37/dsh-office 为 DeepSeek Harness 提供 11 个 Office 文档工具。参考 anthropics/skills（Apache 2.0）提炼。
+@huiliyi37/dsh-office 为 DeepSeek Harness 提供 12 个 Office 文档工具。参考 anthropics/skills（Apache 2.0）提炼。
 
 ## 工具总览
 
@@ -22,7 +22,8 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 | `pdf_merge` | 多个 PDF → 一个（按给定顺序） |
 | `pdf_split` | PDF 拆分/抽取：默认每页一个文件，或按 "1,3,5-7" 抽取指定页 |
 | `pptx_create` | 幻灯片定义 → `.pptx`（7 种版式 + 主题 + 演讲者备注） |
-| `pptx_read` | 幻灯片文本 → markdown（可选含备注） |
+| `pptx_read` | 幻灯片文本 → markdown；`include` 可选附加结构（summary/layouts/images/tables：shape 名与 cm 坐标、图片目标、表格行列） |
+| `pptx_edit` | 现有 `.pptx` 文本查找替换（find/replace/slide，保留全部版式样式，适合改错字/更新数字） |
 
 ## 何时使用
 
@@ -64,6 +65,12 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
    - `possible_overwrite`：同列公式块首尾紧邻的裸数字可能是被覆盖的公式——确认或改回公式
    - `inconsistent_formula`：同列多数公式是结构 A，少数行是结构 B——对齐
    - `self_reference` / `division_by_zero`：直接修复
+
+## PPT 编辑纪律（pptx_edit）
+
+- **先读后改**：编辑现有 PPT 前先 `pptx_read`（含 `include` 结构信息）了解版式，再定位要改的文本
+- 每个 op 用 `find`/`replace`，需要定点修改时传 `slide`（1-based）；默认输出回原文件，想保留原版用 `output_path`
+- `pptx_edit` 只改文本节点（`<a:t>`），**不触碰**布局、字体、配色——样式零破坏
 
 ## PPT 生成方法论（重要）
 

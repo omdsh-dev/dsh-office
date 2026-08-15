@@ -9,6 +9,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { containsCjk, resolveCjkFont } from './fonts.js'
 import type { ResolvedCjkFont } from './fonts.js'
 import { textOutput } from './text-output.js'
+import { registerPdfOpsTools } from './pdf-ops.js'
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -295,6 +296,7 @@ async function extractPdfPages(filePath: string): Promise<PdfPageText[]> {
 // ── registration ─────────────────────────────────────────────────
 
 export function registerPdfTools(ctx: Context): void {
+  registerPdfOpsTools(ctx)
   ctx.tools.register(defineTool({
     name: 'pdf_create',
     description: 'Generate a real PDF with text, headings, tables, and lists. CJK text is rendered via an auto-detected system font (warns if none found). Content is an array of blocks: {type:"heading"|"h2"|"h3"|"paragraph"|"table"|"code"|"list", text?, headers?, rows?, items?, ordered?}.',

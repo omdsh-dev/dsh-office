@@ -6,7 +6,7 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 
 # dsh-office（Office 文档工具）
 
-@huiliyi37/dsh-office 为 DeepSeek Harness 提供 9 个 Office 文档工具。参考 anthropics/skills（Apache 2.0）提炼。
+@huiliyi37/dsh-office 为 DeepSeek Harness 提供 11 个 Office 文档工具。参考 anthropics/skills（Apache 2.0）提炼。
 
 ## 工具总览
 
@@ -19,6 +19,8 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 | `xlsx_audit` | **公式结构审计**：静态启发式查"值扫描看不到"的问题（数组公式陷阱、SUM 漏行、公式被硬编码覆盖、同列公式不一致、自引用、字面除零） |
 | `pdf_create` | 内容块数组 → PDF（标题/段落/表格/列表/代码块，CJK 自动字体，页码可选） |
 | `pdf_read` | 按页提取 PDF 文本（`--- Page N ---` 标记，start_page/end_page 分页） |
+| `pdf_merge` | 多个 PDF → 一个（按给定顺序） |
+| `pdf_split` | PDF 拆分/抽取：默认每页一个文件，或按 "1,3,5-7" 抽取指定页 |
 | `pptx_create` | 幻灯片定义 → `.pptx`（7 种版式 + 主题 + 演讲者备注） |
 | `pptx_read` | 幻灯片文本 → markdown（可选含备注） |
 
@@ -45,6 +47,7 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 2. **生成后自查**：用 `xlsx_read`/`pdf_read`/`pptx_read` 读回产出，确认内容完整、无占位符（lorem / xxx / TODO）、中文渲染正常
 3. **PDF 中文**：系统无 CJK 字体时会显式警告——告知用户，建议装 Noto Sans CJK 或改用英文
 4. **正式交付**：PDF 默认带 `page_numbers: true`；PPT 大演示加演讲者备注（`notes` 字段）
+5. **DOCX 增强**：机密/草稿文档用 `watermark`（如 `{text:"机密", opacity:0.3}`）；深色封面用 `background_color`；对比表格用 `stripe:true`（表头深蓝 + 交替行浅色）
 
 ## 公式纪律（xlsx 交付前必读）
 

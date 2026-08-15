@@ -35,8 +35,10 @@ describe('dsh-office plugin', () => {
       'pdf_read',
       'pptx_create',
       'pptx_read',
+      'xlsx_audit',
       'xlsx_edit',
       'xlsx_read',
+      'xlsx_recalc',
       'xlsx_write',
     ])
   })

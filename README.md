@@ -20,6 +20,8 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 
 ## Install & load
 
+> **Compatibility**: requires `dsh` ≥ `0.1.0-rc.5` (bundles `@deepseek-ai/dsh-tools` ≥ `0.1.0-rc.5`). Installing on an older core whose `dsh-tools` is a `0.0.1` release installs a second `dsh-tools` copy and crashes every tool call with `Cannot read properties of undefined (reading 'prepare')`.
+
 ### Full load (all 9 tools)
 
 ```sh

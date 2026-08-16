@@ -1,7 +1,7 @@
 {
   "name": "@huiliyi37/dsh-office",
-  "version": "0.1.7",
-  "description": "Office document tools (xlsx / pdf / pptx) for DeepSeek Harness: generate, read, and edit spreadsheets, PDFs, and presentations",
+  "version": "0.2.0",
+  "description": "Office document tools (xlsx / pdf / pptx / docx) for DeepSeek Harness: generate, read, and edit spreadsheets, PDFs, presentations, and Word documents",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

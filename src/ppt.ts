@@ -1,7 +1,7 @@
 // pptx_create / pptx_read tools, ported from the Tianshu office-ppt plugin
 // (Apache-2.0 licensed upstream) to the DeepSeek Harness cordis tool model.
 
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { basename } from 'node:path'
 import type JSZip from 'jszip'
 import { defineTool } from '@deepseek-ai/dsh-tools'
@@ -495,10 +495,8 @@ async function pptxEdit(params: PptxEditInput): Promise<string> {
   }
 
   const outPath = params.output_path || filePath
-  await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }).then(buf => {
-    const fs = require('node:fs') as typeof import('node:fs')
-    fs.writeFileSync(outPath, buf)
-  })
+  const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
+  writeFileSync(outPath, buf)
   const name = basename(filePath)
   return `📊 PPTX: Edited "${name}" — ${totalReplacements} replacement(s)\n${report.map(r => `   ${r}`).join('\n')}\n   File: ${outPath}`
 }

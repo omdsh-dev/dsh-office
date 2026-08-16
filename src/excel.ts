@@ -6,6 +6,7 @@ import ExcelJS from 'exceljs'
 import { defineTool, type JsonValue } from '@deepseek-ai/dsh-tools'
 import type { Context } from '@deepseek-ai/cordis'
 import { textOutput } from './text-output.js'
+import { auditWorkbook, recalcWorkbook } from './excel-audit.js'
 
 // ── shared helpers ─────────────────────────────────────────────────
 
@@ -338,6 +339,81 @@ async function xlsxEdit(params: {
   return `Edited ${filePath}${outPath !== filePath ? ` → ${outPath}` : ''}\n${applied.map(a => `  - ${a}`).join('\n')}`
 }
 
+// ── xlsx_recalc / xlsx_audit ───────────────────────────────────────
+
+async function xlsxRecalc(params: {
+  file_path: string
+  timeout?: number
+}): Promise<string> {
+  const filePath = params.file_path
+  if (!existsSync(filePath)) {
+    throw new Error(`File not found: ${filePath}`)
+  }
+
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.readFile(filePath)
+
+  const result = await recalcWorkbook(workbook, params.timeout ?? 30)
+  const lines = [
+    `status: ${result.status}`,
+    `total_formulas: ${result.total_formulas}`,
+    `total_errors: ${result.total_errors}`,
+  ]
+  const errors = Object.entries(result.error_summary)
+  if (errors.length > 0) {
+    lines.push('')
+    lines.push('error_summary:')
+    for (const [err, info] of errors) {
+      lines.push(`  ${err}: ${info.count} hit(s)`)
+      for (const loc of info.locations) {
+        lines.push(`    ${loc}`)
+      }
+    }
+  }
+  for (const w of result.warnings) {
+    lines.push(`warning: ${w}`)
+  }
+  if (result.status === 'errors_found') {
+    lines.push('')
+    lines.push('Fix the reported formula cells, then re-run xlsx_recalc until status is success before delivery.')
+  }
+  return lines.join('\n')
+}
+
+async function xlsxAudit(params: {
+  file_path: string
+}): Promise<string> {
+  const filePath = params.file_path
+  if (!existsSync(filePath)) {
+    throw new Error(`File not found: ${filePath}`)
+  }
+
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.readFile(filePath)
+
+  const result = await auditWorkbook(workbook)
+  const lines = [
+    `status: ${result.status}`,
+    `total_formulas: ${result.total_formulas}`,
+  ]
+  const types = Object.entries(result.summary)
+  if (types.length > 0) {
+    lines.push('')
+    lines.push('summary:')
+    for (const [type, count] of types) {
+      lines.push(`  ${type}: ${count}`)
+    }
+    lines.push('')
+    lines.push('warnings:')
+    for (const w of result.warnings) {
+      lines.push(`  ${w.type} (${w.count}): ${w.samples.join(', ')}`)
+    }
+    lines.push('')
+    lines.push('These are heuristic suspicions — inspect each sample and fix, or confirm it is intentional.')
+  }
+  return lines.join('\n')
+}
+
 // ── registration ───────────────────────────────────────────────────
 
 export function registerExcelTools(ctx: Context): void {
@@ -414,5 +490,26 @@ export function registerExcelTools(ctx: Context): void {
     output: textOutput,
     execute: async (args) => ({ content: await xlsxEdit(args) }),
     isConcurrencySafe: () => false,
+  }))
+  ctx.tools.register(defineTool({
+    name: 'xlsx_recalc',
+    description: 'Recalculate every formula in a .xlsx workbook with a lightweight pure-TS engine and scan for error values (#REF!, #DIV/0!, #VALUE!, #N/A, #NAME?, #NUM!) with locations. Run after any write/edit that includes formulas; errors_found means the workbook must be fixed before delivery. Unsupported functions are reported as warnings (evaluated as #NAME?).',
+    parameters: {
+      file_path: { type: 'string', required: true, description: 'Path to the .xlsx file' },
+      timeout: { type: 'integer', description: 'Evaluation budget in seconds (default 30; larger files may need 60)' },
+    },
+    output: textOutput,
+    execute: async (args) => ({ content: await xlsxRecalc(args) }),
+    isConcurrencySafe: () => true,
+  }))
+  ctx.tools.register(defineTool({
+    name: 'xlsx_audit',
+    description: 'Statically inspect formula structure in a .xlsx workbook for problems a value scan cannot see: array-formula traps (aggregate(IF(range,...)) that Excel evaluates as #VALUE!), aggregation ranges that miss an adjacent data row, formulas overwritten by hardcoded values, inconsistent formulas within a column, self-references, and literal division by zero. Heuristic — confirm each warning before acting.',
+    parameters: {
+      file_path: { type: 'string', required: true, description: 'Path to the .xlsx file' },
+    },
+    output: textOutput,
+    execute: async (args) => ({ content: await xlsxAudit(args) }),
+    isConcurrencySafe: () => true,
   }))
 }

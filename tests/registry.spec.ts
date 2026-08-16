@@ -24,7 +24,7 @@ describe('dsh-office plugin', () => {
     expect(inject).toEqual(['tools'])
   })
 
-  it('registers all eleven office tools', () => {
+  it('registers all twelve office tools', () => {
     const { ctx, definitions } = makeCtx()
     apply(ctx as never)
     const names = definitions.map(d => d.name).sort()
@@ -36,6 +36,7 @@ describe('dsh-office plugin', () => {
       'pdf_read',
       'pdf_split',
       'pptx_create',
+      'pptx_edit',
       'pptx_read',
       'xlsx_audit',
       'xlsx_edit',

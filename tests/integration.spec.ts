@@ -30,7 +30,7 @@ afterAll(async () => {
 })
 
 describe('real harness assembly', () => {
-  it('registers all eleven tools on the real registry', () => {
+  it('registers all twelve tools on the real registry', () => {
     const schemas = ctx.tools.schemas()
     const names = schemas.map(s => s.name).sort()
     expect(names).toEqual([
@@ -41,6 +41,7 @@ describe('real harness assembly', () => {
       'pdf_read',
       'pdf_split',
       'pptx_create',
+      'pptx_edit',
       'pptx_read',
       'xlsx_audit',
       'xlsx_edit',

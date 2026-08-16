@@ -20,13 +20,14 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 | `pdf_merge` | Merge multiple PDFs into one, in order |
 | `pdf_split` | Split a PDF into single-page files, or extract pages by spec (`"1,3,5-7"`) |
 | `pptx_create` | Generate a `.pptx` deck from slide definitions (title / section / content / two-column / image / table / chart), with optional theme and speaker notes |
-| `pptx_read` | Extract slide text as markdown, optionally including speaker notes |
+| `pptx_read` | Extract slide text as markdown, optionally including speaker notes; `include` adds structure (summary/layouts/images/tables: shape names & cm positions, image targets, table dims) |
+| `pptx_edit` | Find/replace text inside an existing `.pptx` (`<a:t>` surgery), preserving all layout and styling |
 
 ## Install & load
 
 > **Compatibility**: requires `dsh` ≥ `0.1.0-rc.5` (bundles `@deepseek-ai/dsh-tools` ≥ `0.1.0-rc.5`). Installing on an older core whose `dsh-tools` is a `0.0.1` release installs a second `dsh-tools` copy and crashes every tool call with `Cannot read properties of undefined (reading 'prepare')`.
 
-### Full load (all 11 tools)
+### Full load (all 12 tools)
 
 ```sh
 dsh plugin --profile <name> add @huiliyi37/dsh-office

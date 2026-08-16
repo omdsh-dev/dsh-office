@@ -1,7 +1,7 @@
 // pptx_create / pptx_read tools, ported from the Tianshu office-ppt plugin
 // (Apache-2.0 licensed upstream) to the DeepSeek Harness cordis tool model.
 
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { basename } from 'node:path'
 import type JSZip from 'jszip'
 import { defineTool } from '@deepseek-ai/dsh-tools'
@@ -99,6 +99,123 @@ function unescapeXml(s: string): string {
 // input scales ~k×n — a crafted deck could pin the event loop for minutes.
 const MAX_SLIDE_XML_SIZE = 50 * 1024 * 1024 // 50MiB per slide XML
 
+/** Reverse of unescapeXml — re-escape user text for XML round-trips. */
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+/** EMU (DrawingML internal unit) → centimetres, 1 decimal. */
+function emuToCm(emu: string | undefined): number | null {
+  if (!emu) return null
+  const n = Number(emu)
+  if (!Number.isFinite(n)) return null
+  return Math.round((n / 360000) * 10) / 10
+}
+
+interface ShapeLayout {
+  name: string
+  text: string
+  pos: string // "x,y w×h (cm)"
+}
+
+/** Extract text shapes (<p:sp>) with name, position/size (cm) and text. */
+function extractShapeLayouts(xml: string): ShapeLayout[] {
+  const out: ShapeLayout[] = []
+  const spRe = /<p:sp\b[^>]*>([\s\S]*?)<\/p:sp>/g
+  let m: RegExpExecArray | null
+  while ((m = spRe.exec(xml)) !== null) {
+    const body = m[1] ?? ''
+    const name = body.match(/<p:cNvPr\b[^>]*\bname="([^"]*)"/)?.[1] ?? ''
+    const off = body.match(/<a:off\b[^>]*\bx="(\d+)"\s*y="(\d+)"\/>/)
+    const ext = body.match(/<a:ext\b[^>]*\bcx="(\d+)"\s*cy="(\d+)"\/>/)
+    const text = extractParagraphs(body).join(' | ')
+    const x = off ? emuToCm(off[1]) : null
+    const y = off ? emuToCm(off[2]) : null
+    const w = ext ? emuToCm(ext[1]) : null
+    const h = ext ? emuToCm(ext[2]) : null
+    const pos = [x, y, w, h].every(v => v !== null)
+      ? `${x},${y} ${w}×${h}cm`
+      : '(no geometry)'
+    out.push({ name: name || '(unnamed)', text, pos })
+  }
+  return out
+}
+
+interface ImageRef {
+  name: string
+  embed: string
+  pos: string
+}
+
+/** Extract pictures (<p:pic>) with name, embed rId and position. */
+function extractImages(xml: string): ImageRef[] {
+  const out: ImageRef[] = []
+  const picRe = /<p:pic\b[^>]*>([\s\S]*?)<\/p:pic>/g
+  let m: RegExpExecArray | null
+  while ((m = picRe.exec(xml)) !== null) {
+    const body = m[1] ?? ''
+    const name = body.match(/<p:cNvPr\b[^>]*\bname="([^"]*)"/)?.[1] ?? ''
+    const embed = body.match(/<a:blip\b[^>]*\br:embed="([^"]*)"/)?.[1] ?? ''
+    const off = body.match(/<a:off\b[^>]*\bx="(\d+)"\s*y="(\d+)"\/>/)
+    const ext = body.match(/<a:ext\b[^>]*\bcx="(\d+)"\s*cy="(\d+)"\/>/)
+    const x = off ? emuToCm(off[1]) : null
+    const y = off ? emuToCm(off[2]) : null
+    const w = ext ? emuToCm(ext[1]) : null
+    const h = ext ? emuToCm(ext[2]) : null
+    const pos = [x, y, w, h].every(v => v !== null)
+      ? `${x},${y} ${w}×${h}cm`
+      : '(no geometry)'
+    out.push({ name: name || '(unnamed)', embed: embed || '(no embed)', pos })
+  }
+  return out
+}
+
+interface TableRef {
+  pos: string
+  rows: number
+  cols: number
+  header: string
+}
+
+/** Extract tables (<a:tbl>) with frame position, dimensions and header row text. */
+function extractTables(xml: string): TableRef[] {
+  const out: TableRef[] = []
+  const tblRe = /<a:tbl\b[^>]*>([\s\S]*?)<\/a:tbl>/g
+  let m: RegExpExecArray | null
+  while ((m = tblRe.exec(xml)) !== null) {
+    const body = m[1] ?? ''
+    const grid = body.match(/<a:gridCol\b/g)?.length ?? 0
+    const rows = body.match(/<a:tr\b/g)?.length ?? 0
+    // first row's cells
+    const firstTr = body.match(/<a:tr\b[^>]*>([\s\S]*?)<\/a:tr>/)
+    const header = firstTr ? extractParagraphs(firstTr[1] ?? '').join(' | ') : ''
+    // frame geometry lives in the enclosing <p:graphicFrame>; walk back from
+    // the table start to the nearest frame open tag
+    const before = xml.slice(0, m.index)
+    const frameOpen = before.lastIndexOf('<p:graphicFrame')
+    let pos = '(no frame)'
+    if (frameOpen >= 0) {
+      const frameHead = xml.slice(frameOpen, m.index).slice(0, 600)
+      const off = frameHead.match(/<a:off\b[^>]*\bx="(\d+)"\s*y="(\d+)"\s*\/>/)
+      const ext = frameHead.match(/<a:ext\b[^>]*\bcx="(\d+)"\s*cy="(\d+)"\s*\/>/)
+      const x = off ? emuToCm(off[1]) : null
+      const y = off ? emuToCm(off[2]) : null
+      const w = ext ? emuToCm(ext[1]) : null
+      const h = ext ? emuToCm(ext[2]) : null
+      if (x !== null && y !== null && w !== null && h !== null) {
+        pos = `${x},${y} ${w}×${h}cm`
+      }
+    }
+    out.push({ pos, rows, cols: grid, header: header || '(empty)' })
+  }
+  return out
+}
+
 /** Join <a:t> runs within each <a:p> paragraph; drop empty paragraphs. */
 function extractParagraphs(xml: string): string[] {
   if (xml.length > MAX_SLIDE_XML_SIZE) {
@@ -120,6 +237,23 @@ function extractParagraphs(xml: string): string[] {
 
 function slideNumber(name: string): number {
   return Number(name?.match(/slide(\d+)\.xml$/)?.[1] ?? NaN)
+}
+
+/** Map image rIds to media targets via the slide's rels part. */
+async function resolveImageTargets(
+  zip: JSZip,
+  num: number,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const relsFile = zip.file(`ppt/slides/_rels/slide${num}.xml.rels`)
+  if (!relsFile) return map
+  const rels = await relsFile.async('string')
+  const re = /<Relationship\s+Id="([^"]+)"\s+Type="[^"]*\/image"[^>]*Target="([^"]*)"/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(rels)) !== null) {
+    map.set(m[1]!, m[2]!)
+  }
+  return map
 }
 
 /** Resolve the notes part for a slide via its .rels, falling back to same-numbered notesSlide. */
@@ -277,6 +411,96 @@ function addSlide(
   }
 }
 
+// ── pptx_edit: find/replace text via <a:t> surgery ────────────────
+
+interface EditOperation {
+  find: string
+  replace?: string
+  slide?: number // 1-based; omitted = all slides
+}
+
+interface PptxEditInput {
+  file_path: string
+  output_path?: string
+  operations: EditOperation[]
+}
+
+async function pptxEdit(params: PptxEditInput): Promise<string> {
+  const filePath = params.file_path
+  if (!existsSync(filePath)) throw new Error(`File not found: ${filePath}`)
+  const operations = params.operations
+  if (!Array.isArray(operations) || operations.length === 0) {
+    throw new Error('Missing or invalid operations: expected non-empty array')
+  }
+  const stat = statSync(filePath)
+  if (stat.size > MAX_PPTX_SIZE) {
+    throw new Error(`file too large (${(stat.size / 1024 / 1024).toFixed(1)}MB > 100MB limit)`)
+  }
+
+  const JSZip = (await import('jszip')).default
+  const zip = await JSZip.loadAsync(readFileSync(filePath))
+
+  const slideNumbers = Object.keys(zip.files)
+    .filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n))
+    .map(slideNumber)
+    .sort((a, b) => a - b)
+  if (slideNumbers.length === 0) {
+    throw new Error(`no slides found in ${filePath} (not a valid .pptx?)`)
+  }
+
+  const run = new RegExp('<a:t([^>]*)>([\\s\\S]*?)<\\/a:t>', 'g')
+  const report: string[] = []
+  let totalReplacements = 0
+
+  for (const op of operations) {
+    if (!op || typeof op.find !== 'string' || op.find.length === 0) {
+      throw new Error('each operation needs a non-empty find string')
+    }
+    const find = op.find
+    const replace = typeof op.replace === 'string' ? op.replace : ''
+    const targets = op.slide
+      ? [op.slide].filter(n => Number.isInteger(n) && n >= 1 && n <= slideNumbers[slideNumbers.length - 1]!)
+      : slideNumbers
+    if (targets.length === 0) {
+      throw new Error(`slide ${String(op.slide)} out of range (deck has ${slideNumbers.length} slides)`)
+    }
+
+    const perSlide: string[] = []
+    for (const num of targets) {
+      const path = `ppt/slides/slide${num}.xml`
+      const file = zip.file(path)
+      if (!file) continue
+      let xml = await file.async('string')
+      let count = 0
+      xml = xml.replace(run, (full, attrs: string, content: string) => {
+        const text = unescapeXml(content)
+        if (!text.includes(find)) return full
+        count++
+        return `<a:t${attrs}>${escapeXml(text.split(find).join(replace))}</a:t>`
+      })
+      if (count > 0) {
+        zip.file(path, xml)
+        perSlide.push(`${num}×${count}`)
+        totalReplacements += count
+      }
+    }
+
+    if (perSlide.length > 0) {
+      report.push(`"${find}" → "${replace}": ${perSlide.join(', ')}`)
+    }
+  }
+
+  if (totalReplacements === 0) {
+    return `📊 PPTX: No text matches found in ${basename(filePath)} — nothing changed`
+  }
+
+  const outPath = params.output_path || filePath
+  const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
+  writeFileSync(outPath, buf)
+  const name = basename(filePath)
+  return `📊 PPTX: Edited "${name}" — ${totalReplacements} replacement(s)\n${report.map(r => `   ${r}`).join('\n')}\n   File: ${outPath}`
+}
+
 // ── registration ─────────────────────────────────────────────────
 
 export function registerPptTools(ctx: Context): void {
@@ -360,11 +584,36 @@ export function registerPptTools(ctx: Context): void {
     isConcurrencySafe: () => true,
   }))
   ctx.tools.register(defineTool({
+    name: 'pptx_edit',
+    description: 'Edit text inside an existing .pptx by find/replace on text runs (<a:t> nodes), preserving all other layout and styling. Each operation: {find, replace, slide?} — slide is 1-based, omit to edit all slides. Saves back to file_path unless output_path is given. Perfect for fixing typos or updating numbers in a generated deck.',
+    parameters: {
+      file_path: { type: 'string', required: true, description: 'Path to the existing .pptx file' },
+      output_path: { type: 'string', description: 'Save to a different path instead of overwriting' },
+      operations: {
+        type: 'array', required: true,
+        description: 'Ordered find/replace operations',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            find: { type: 'string', required: true, description: 'Text to find (plain text, not regex)' },
+            replace: { type: 'string', description: 'Replacement text (empty string deletes the match)' },
+            slide: { type: 'integer', description: '1-based slide number; omit to edit all slides' },
+          },
+        },
+      },
+    },
+    output: textOutput,
+    execute: async (args) => ({ content: await pptxEdit(args) }),
+    isConcurrencySafe: () => false,
+  }))
+  ctx.tools.register(defineTool({
     name: 'pptx_read',
-    description: 'Extract text from a .pptx file as markdown (## Slide N + paragraphs). Optionally includes speaker notes. Use it to review generated decks for completeness or leftover placeholders.',
+    description: 'Extract text from a .pptx file as markdown (## Slide N + paragraphs). Optionally includes speaker notes. Pass include to also get structure: "summary,layouts,images,tables" (e.g. shape names, positions in cm, image targets, table dimensions). Use it to review generated decks or analyze template layouts.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to the .pptx file' },
       include_notes: { type: 'boolean', description: 'Also extract speaker notes (default false)' },
+      include: { type: 'string', description: 'Comma-separated structure to include per slide: summary, layouts, images, tables (e.g. "summary,images")' },
     },
     output: textOutput,
     execute: async (args) => {
@@ -388,6 +637,7 @@ export function registerPptTools(ctx: Context): void {
         }
 
         const includeNotes = args.include_notes === true
+        const include = new Set((typeof args.include === 'string' ? args.include : '').split(',').map(s => s.trim()).filter(Boolean))
         const out: string[] = [`# ${basename(filePath)}`, '']
         for (let i = 0; i < slideNames.length; i++) {
           const num = slideNumber(slideNames[i] ?? '')
@@ -395,6 +645,45 @@ export function registerPptTools(ctx: Context): void {
           const paragraphs = extractParagraphs(xml)
           out.push(`## Slide ${i + 1}`)
           out.push(paragraphs.length > 0 ? paragraphs.join('\n\n') : '(no text)')
+
+          if (include.size > 0) {
+            if (include.has('layouts')) {
+              const shapes = extractShapeLayouts(xml)
+              if (shapes.length > 0) {
+                out.push('', '**Text shapes (name: pos — text):**')
+                for (const s of shapes) {
+                  out.push(`- ${s.name}: ${s.pos} — ${s.text || '(no text)'}`)
+                }
+              }
+            }
+            if (include.has('images')) {
+              const images = extractImages(xml)
+              if (images.length > 0) {
+                const targets = await resolveImageTargets(zip, num)
+                out.push('', '**Images:**')
+                for (const img of images) {
+                  const target = targets.get(img.embed)
+                  out.push(`- ${img.name}: ${img.pos}${target ? ` → ${target}` : ''}`)
+                }
+              }
+            }
+            if (include.has('tables')) {
+              const tables = extractTables(xml)
+              if (tables.length > 0) {
+                out.push('', '**Tables:**')
+                for (const t of tables) {
+                  out.push(`- ${t.rows} rows × ${t.cols} cols at ${t.pos}; header: ${t.header}`)
+                }
+              }
+            }
+            if (include.has('summary')) {
+              const shapes = extractShapeLayouts(xml)
+              const images = extractImages(xml)
+              const tables = extractTables(xml)
+              out.push('', `**Summary:** ${shapes.length} text shape(s), ${images.length} image(s), ${tables.length} table(s)`)
+            }
+          }
+
           if (includeNotes) {
             const notesPart = await findNotesPart(zip, num)
             if (notesPart) {

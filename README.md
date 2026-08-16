@@ -17,6 +17,8 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 | `xlsx_audit` | Statically audit formula structure: array-formula traps, aggregation ranges missing rows, formulas overwritten by hardcoded values, inconsistent formulas in a column, self-references, division by zero |
 | `pdf_create` | Generate a real PDF with headings, paragraphs, tables, lists, code blocks and footer page numbers; CJK text renders via an auto-detected system font |
 | `pdf_read` | Extract text from a PDF for reading into context |
+| `pdf_merge` | Merge multiple PDFs into one, in order |
+| `pdf_split` | Split a PDF into single-page files, or extract pages by spec (`"1,3,5-7"`) |
 | `pptx_create` | Generate a `.pptx` deck from slide definitions (title / section / content / two-column / image / table / chart), with optional theme and speaker notes |
 | `pptx_read` | Extract slide text as markdown, optionally including speaker notes |
 
@@ -24,7 +26,7 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 
 > **Compatibility**: requires `dsh` ≥ `0.1.0-rc.5` (bundles `@deepseek-ai/dsh-tools` ≥ `0.1.0-rc.5`). Installing on an older core whose `dsh-tools` is a `0.0.1` release installs a second `dsh-tools` copy and crashes every tool call with `Cannot read properties of undefined (reading 'prepare')`.
 
-### Full load (all 9 tools)
+### Full load (all 11 tools)
 
 ```sh
 dsh plugin --profile <name> add @huiliyi37/dsh-office

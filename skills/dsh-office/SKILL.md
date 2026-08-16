@@ -6,7 +6,7 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 
 # dsh-office（Office 文档工具）
 
-@huiliyi37/dsh-office 为 DeepSeek Harness 提供 12 个 Office 文档工具。参考 anthropics/skills（Apache 2.0）提炼。
+@huiliyi37/dsh-office 为 DeepSeek Harness 提供 14 个 Office 文档工具。参考 anthropics/skills（Apache 2.0）提炼。
 
 ## 工具总览
 
@@ -24,6 +24,8 @@ triggers: [excel, xlsx, 表格, 电子表格, spreadsheet, pdf, 报告, 合同, 
 | `pptx_create` | 幻灯片定义 → `.pptx`（7 种版式 + 主题 + 演讲者备注） |
 | `pptx_read` | 幻灯片文本 → markdown；`include` 可选附加结构（summary/layouts/images/tables：shape 名与 cm 坐标、图片目标、表格行列） |
 | `pptx_edit` | 现有 `.pptx` 文本查找替换（find/replace/slide，保留全部版式样式，适合改错字/更新数字） |
+| `docx_create` | 内容块数组 → `.docx`（标题/段落/表格/列表/代码块；可选条纹表格、页面背景色、对角文字水印） |
+| `docx_read` | 提取 `.docx` 文本进上下文 |
 
 ## 何时使用
 

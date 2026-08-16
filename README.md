@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Office document tools for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): generate, read, and edit spreadsheets (`.xlsx`), PDFs, and presentations (`.pptx`).
+Office document tools for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`): generate, read, and edit spreadsheets (`.xlsx`), PDFs, presentations (`.pptx`), and Word documents (`.docx`).
 
 Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) terminal coding agent (Apache-2.0 licensed upstream), adapted to the dsh cordis tool model.
 
@@ -22,12 +22,14 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 | `pptx_create` | Generate a `.pptx` deck from slide definitions (title / section / content / two-column / image / table / chart), with optional theme and speaker notes |
 | `pptx_read` | Extract slide text as markdown, optionally including speaker notes; `include` adds structure (summary/layouts/images/tables: shape names & cm positions, image targets, table dims) |
 | `pptx_edit` | Find/replace text inside an existing `.pptx` (`<a:t>` surgery), preserving all layout and styling |
+| `docx_create` | Generate a real `.docx` Word document from content blocks (heading / paragraph / table / code / list), with optional striped tables, page background color, and diagonal text watermark |
+| `docx_read` | Extract text from a `.docx` for reading into context |
 
 ## Install & load
 
 > **Compatibility**: requires `dsh` ≥ `0.1.0-rc.5` (bundles `@deepseek-ai/dsh-tools` ≥ `0.1.0-rc.5`). Installing on an older core whose `dsh-tools` is a `0.0.1` release installs a second `dsh-tools` copy and crashes every tool call with `Cannot read properties of undefined (reading 'prepare')`.
 
-### Full load (all 12 tools)
+### Full load (all 14 tools)
 
 ```sh
 dsh plugin --profile <name> add @huiliyi37/dsh-office
@@ -57,8 +59,8 @@ exclude it (useful to keep the tool surface small):
           docx: true       # keep Word tools
 ```
 
-Families: `xlsx` (xlsx_read/write/edit), `pdf` (pdf_create/read),
-`ppt` (pptx_create/read), `docx` (docx_create/read).
+Families: `xlsx` (read/write/edit/recalc/audit), `pdf` (create/read/merge/split),
+`ppt` (create/read/edit), `docx` (create/read).
 
 ### Uninstall
 

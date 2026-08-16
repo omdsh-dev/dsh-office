@@ -1,6 +1,6 @@
 # @huiliyi37/dsh-office
 
-面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）的 Office 文档工具插件：生成、读取、编辑电子表格（`.xlsx`）、PDF 和演示文稿（`.pptx`）。
+面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）的 Office 文档工具插件：生成、读取、编辑电子表格（`.xlsx`）、PDF、演示文稿（`.pptx`）和 Word 文档（`.docx`）。
 
 移植自 [天枢](https://github.com/Tianshu-Tui) 终端编程智能体的 office 插件（上游同为 Apache-2.0 许可），适配 dsh 的 cordis 工具模型。
 
@@ -11,16 +11,23 @@
 | `xlsx_read` | 列出 `.xlsx` 工作表，或将指定工作表读取为 markdown 表格（大文件支持 range 分页；公式单元格保留公式文本） |
 | `xlsx_write` | 将二维数组写入新的 `.xlsx`（支持公式单元格、表头加粗、列宽、数字格式） |
 | `xlsx_edit` | 编辑已有 `.xlsx`：新增工作表、更新单元格（值或公式）、追加行 |
+| `xlsx_recalc` | 用轻量纯 TS 引擎重算全部公式，报告错误值（`#REF!`/`#DIV/0!`/`#VALUE!`/`#N/A`/`#NAME?`/`#NUM!`）及位置 |
+| `xlsx_audit` | 静态审计公式结构：数组公式陷阱、聚合范围漏行、公式被硬编码覆盖、同列公式不一致、自引用、字面除零 |
 | `pdf_create` | 生成真实 PDF：标题、段落、表格、列表、代码块、页脚页码；中文内容通过自动探测的系统字体渲染 |
 | `pdf_read` | 提取 PDF 文本供上下文阅读 |
+| `pdf_merge` | 按给定顺序将多个 PDF 合并为一个 |
+| `pdf_split` | 将 PDF 拆分为单页文件，或按 "1,3,5-7" 抽取指定页 |
 | `pptx_create` | 按幻灯片定义生成 `.pptx`（标题 / 章节 / 内容 / 双栏 / 图片 / 表格 / 图表），支持主题配色与演讲者备注 |
-| `pptx_read` | 将幻灯片文本提取为 markdown，可选包含演讲者备注 |
+| `pptx_read` | 将幻灯片文本提取为 markdown，可选包含演讲者备注；`include` 可附加结构（summary/layouts/images/tables：形状名与 cm 坐标、图片目标、表格行列） |
+| `pptx_edit` | 在现有 `.pptx` 内查找替换文本（`<a:t>` 手术式替换），保留全部版式与样式，适合改错字、更新数字 |
+| `docx_create` | 按内容块生成 `.docx`（标题 / 段落 / 表格 / 列表 / 代码块），支持条纹表格、页面背景色、对角文字水印 |
+| `docx_read` | 提取 `.docx` 文本供上下文阅读 |
 
 ## 安装与装载
 
 > **兼容性**：要求 `dsh` ≥ `0.1.0-rc.5`（即 `@deepseek-ai/dsh-tools` ≥ `0.1.0-rc.5`）。安装在 `dsh-tools` 为 `0.0.1` 系列的旧核心上会重复安装一份 dsh-tools，导致所有工具调用崩溃（`Cannot read properties of undefined (reading 'prepare')`）。
 
-### 全量装载（9 个工具）
+### 全量装载（14 个工具）
 
 ```sh
 dsh plugin --profile <名称> add @huiliyi37/dsh-office
@@ -46,7 +53,7 @@ dsh --profile <名称>
           docx: true       # 保留 Word 工具
 ```
 
-工具族：`xlsx`（xlsx_read/write/edit）、`pdf`（pdf_create/read）、`ppt`（pptx_create/read）、`docx`（docx_create/read）。
+工具族：`xlsx`（read/write/edit/recalc/audit）、`pdf`（create/read/merge/split）、`ppt`（create/read/edit）、`docx`（create/read）。
 
 ### 卸载
 

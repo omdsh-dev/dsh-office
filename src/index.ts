@@ -9,10 +9,10 @@
  * (Apache-2.0 licensed upstream, https://github.com/Tianshu-Tui).
  *
  * Registered tools (all enabled by default; disable per family via config):
- *   - xlsx_read / xlsx_write / xlsx_edit  (exceljs)
- *   - pdf_create / pdf_read               (pdfkit + pdf-parse, CJK-aware)
- *   - pptx_create / pptx_read             (pptxgenjs + jszip)
- *   - docx_create / docx_read             (docx + mammoth)
+ *   - xlsx_read / xlsx_write / xlsx_edit / xlsx_recalc / xlsx_audit  (exceljs)
+ *   - pdf_create / pdf_read / pdf_merge / pdf_split                  (pdfkit + pdf-parse + pdf-lib)
+ *   - pptx_create / pptx_read / pptx_edit                            (pptxgenjs + jszip)
+ *   - docx_create / docx_read                                        (docx + mammoth)
  */
 
 import type { Context } from '@deepseek-ai/cordis'

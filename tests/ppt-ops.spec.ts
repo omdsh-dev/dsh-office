@@ -3,6 +3,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { mkdtemp, rm } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { ToolDefinition } from '@deepseek-ai/dsh-tools'
@@ -153,6 +154,19 @@ describe('pptx_edit', () => {
     const copy = await run(tools, 'pptx_read', { file_path: outFile })
     expect(orig).toContain('成本下降')
     expect(copy).toContain('成本降低')
+  })
+
+  it('creates missing output_path directories', async () => {
+    const file = deckPath('edit-dir.pptx')
+    const outFile = join(dir, 'exports', 'q3', 'edit-dir-copy.pptx')
+    const tools = await makeDeck(file)
+    const out = await run(tools, 'pptx_edit', {
+      file_path: file,
+      output_path: outFile,
+      operations: [{ find: '营收', replace: 'Revenue' }],
+    })
+    expect(out).toContain('replacement(s)')
+    expect(existsSync(outFile)).toBe(true)
   })
 
   it('rejects an out-of-range slide and a missing file', async () => {

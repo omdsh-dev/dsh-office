@@ -7,6 +7,7 @@ import { defineTool, type JsonValue } from '@deepseek-ai/dsh-tools'
 import type { Context } from '@deepseek-ai/cordis'
 import { textOutput } from './text-output.js'
 import { auditWorkbook, recalcWorkbook } from './excel-audit.js'
+import { ensureParentDir } from './write.js'
 
 // ── shared helpers ─────────────────────────────────────────────────
 
@@ -230,6 +231,7 @@ async function xlsxWrite(params: {
 
   applyStyles(ws, params)
 
+  ensureParentDir(filePath)
   await workbook.xlsx.writeFile(filePath)
 
   return `Written ${data.length} rows × ${(data[0] as JsonValue[]).length} cols to ${filePath} (sheet: "${sheetName}")`
@@ -334,6 +336,7 @@ async function xlsxEdit(params: {
   }
 
   const outPath = params?.output_path || filePath
+  ensureParentDir(outPath)
   await workbook.xlsx.writeFile(outPath)
 
   return `Edited ${filePath}${outPath !== filePath ? ` → ${outPath}` : ''}\n${applied.map(a => `  - ${a}`).join('\n')}`

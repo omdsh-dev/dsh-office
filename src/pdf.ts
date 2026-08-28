@@ -9,6 +9,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { containsCjk, resolveCjkFont } from './fonts.js'
 import type { ResolvedCjkFont } from './fonts.js'
 import { textOutput } from './text-output.js'
+import { ensureParentDir } from './write.js'
 import { registerPdfOpsTools } from './pdf-ops.js'
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -98,10 +99,17 @@ async function generatePdf(filePath: string, input: PdfInput): Promise<string[]>
     emitter.on('data', (chunk: Buffer) => buffers.push(Buffer.from(chunk)))
     emitter.on('end', () => {
       // 原子替换：同目录临时文件 + rename（跨文件系统会 EXDEV，故不用 os.tmpdir）
-      const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`
-      writeFileSync(tmp, Buffer.concat(buffers))
-      renameSync(tmp, filePath)
-      resolve(warnings)
+      // 这里的 throw 发生在 pdfkit 流事件栈内、Promise 链之外，宿主进程会直接
+      // 崩溃，所以必须 catch 后转成 reject，交给工具层返回错误。
+      try {
+        ensureParentDir(filePath)
+        const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`
+        writeFileSync(tmp, Buffer.concat(buffers))
+        renameSync(tmp, filePath)
+        resolve(warnings)
+      } catch (err) {
+        reject(err)
+      }
     })
     emitter.on('error', reject)
     const { title, content } = input

@@ -7,6 +7,7 @@ import type JSZip from 'jszip'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { Context } from '@deepseek-ai/cordis'
 import { textOutput } from './text-output.js'
+import { ensureParentDir } from './write.js'
 
 // pptxgenjs's default export merges a class with a namespace; keep the
 // instance surface we actually use as an explicit structural type.
@@ -496,6 +497,7 @@ async function pptxEdit(params: PptxEditInput): Promise<string> {
 
   const outPath = params.output_path || filePath
   const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
+  ensureParentDir(outPath)
   writeFileSync(outPath, buf)
   const name = basename(filePath)
   return `📊 PPTX: Edited "${name}" — ${totalReplacements} replacement(s)\n${report.map(r => `   ${r}`).join('\n')}\n   File: ${outPath}`
@@ -574,6 +576,7 @@ export function registerPptTools(ctx: Context): void {
           addSlide(pptx, slideDef, theme)
         }
 
+        ensureParentDir(dest)
         await pptx.writeFile({ fileName: dest })
         const name = basename(dest)
         return { content: artifactHint(dest, `Generated "${name}" with ${slides.length} slide(s)`) }

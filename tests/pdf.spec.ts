@@ -78,6 +78,20 @@ describe('pdf tools', () => {
     expect(read.content).toContain('你好')
   })
 
+  it('pdf_create creates missing destination directories instead of crashing', async () => {
+    const { tools } = collect()
+    // issue #5: a destination inside a not-yet-existing directory used to
+    // throw ENOENT inside the pdfkit stream 'end' handler, killing the host
+    // process before the tool layer could catch anything.
+    const file = join(dir, 'plugin-smoke-test', 'nested', 'smoke.pdf')
+    const created = await tools['pdf_create']!.execute({
+      destination_path: file,
+      content: [{ type: 'paragraph', text: 'Smoke' }],
+    }, noExec) as { content: string }
+    expect(created.content).toContain('Generated')
+    expect(existsSync(file)).toBe(true)
+  })
+
   it('pdf_read supports start_page/end_page and page markers', async () => {
     const { tools } = collect()
     const file = join(dir, 'multi.pdf')

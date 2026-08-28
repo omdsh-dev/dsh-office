@@ -28,6 +28,17 @@ function collect(): { tools: Record<string, ToolDefinition> } {
 const noExec = {} as never
 
 describe('xlsx tools', () => {
+  it('xlsx_write creates missing destination directories', async () => {
+    const { tools } = collect()
+    const file = join(dir, 'reports', 'q3', 'book.xlsx')
+    const written = await tools['xlsx_write']!.execute({
+      file_path: file,
+      data: [['Name', 'Score'], ['Alice', 92]],
+    }, noExec) as { content: string }
+    expect(written.content).toContain('Written')
+    expect(existsSync(file)).toBe(true)
+  })
+
   it('xlsx_write then xlsx_read round-trips data', async () => {
     const { tools } = collect()
     const file = join(dir, 'book.xlsx')

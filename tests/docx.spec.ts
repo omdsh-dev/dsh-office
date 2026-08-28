@@ -27,6 +27,17 @@ function collect(): { tools: Record<string, ToolDefinition> } {
 const noExec = {} as never
 
 describe('docx tools', () => {
+  it('docx_create creates missing destination directories', async () => {
+    const { tools } = collect()
+    const file = join(dir, 'reports', 'q3', 'doc.docx')
+    const created = await tools['docx_create']!.execute({
+      destination_path: file,
+      content: [{ type: 'paragraph', text: 'Smoke' }],
+    }, noExec) as { content: string }
+    expect(created.content).toContain('Generated')
+    expect(existsSync(file)).toBe(true)
+  })
+
   it('docx_create generates a document and docx_read extracts it', async () => {
     const { tools } = collect()
     const file = join(dir, 'doc.docx')

@@ -28,6 +28,17 @@ function collect(): { tools: Record<string, ToolDefinition> } {
 const noExec = {} as never
 
 describe('pptx tools', () => {
+  it('pptx_create creates missing destination directories', async () => {
+    const { tools } = collect()
+    const file = join(dir, 'decks', 'q3', 'deck.pptx')
+    const created = await tools['pptx_create']!.execute({
+      destination_path: file,
+      slides: [{ type: 'title', title: 'Smoke' }],
+    }, noExec) as { content: string }
+    expect(created.content).toContain('1 slide(s)')
+    expect(existsSync(file)).toBe(true)
+  })
+
   it('pptx_create generates a deck and pptx_read extracts it', async () => {
     const { tools } = collect()
     const file = join(dir, 'deck.pptx')

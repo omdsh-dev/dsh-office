@@ -18,6 +18,7 @@ import mammoth from 'mammoth'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { Context } from '@deepseek-ai/cordis'
 import { textOutput } from './text-output.js'
+import { ensureParentDir } from './write.js'
 
 interface DocxBlock {
   type?: string
@@ -220,6 +221,7 @@ async function docxCreate(params: DocxCreateInput): Promise<string> {
   }
   if (background) extras += `, background ${background.color}`
 
+  await ensureParentDir(dest)
   await writeFile(dest, buf)
   return `📄 DOCX: Generated "${basename(dest)}" with ${children.length} block(s)${extras}\n   File: ${dest}`
 }

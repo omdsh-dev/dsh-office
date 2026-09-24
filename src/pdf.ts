@@ -268,37 +268,29 @@ interface PdfPageText {
 const PDF_READ_CHAR_CAP = 8000
 
 async function extractPdfPages(filePath: string): Promise<PdfPageText[]> {
-  const { default: pdfParse } = await import('pdf-parse') as unknown as {
-    default: (
-      buffer: Buffer,
-      options?: {
-        pagerender?: (pageData: { getTextContent(): Promise<{ items: Array<{ str: string }> }> }) => Promise<string> | string
-      },
-    ) => Promise<{ numpages: number }>
-  }
-  const buffer = readFileSync(filePath)
-  // pdf-parse's bundled pdf.js flakes with 'bad XRef entry' on the first
-  // parse(s) after an idle period — retry with a short backoff.
-  const pages: PdfPageText[] = []
-  let lastErr: unknown
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      await pdfParse(buffer, {
-        pagerender: async (pageData) => {
-          const t = await pageData.getTextContent()
-          const text = t.items.map(i => i.str).join(' ').trim()
-          pages.push({ page: pages.length + 1, text })
-          return text
-        },
-      })
-      return pages
-    } catch (err) {
-      pages.length = 0
-      lastErr = err
-      if (attempt < 2) await new Promise(r => setTimeout(r, 75 * (attempt + 1)))
+  // 用现代的 pdfjs-dist 取代 pdf-parse：后者内置的是 2018 年版 pdf.js，一旦
+  // 同进程加载过 pdfkit 的字体依赖 fontkit（它会往 globalThis 注入一批 TS helper），
+  // pdf-parse 便 100% 报 'bad XRef entry' 解析失败；pdfjs-dist 不受该污染影响，
+  // 且持续维护。详见 issue 后续调查。
+  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  const buffer = new Uint8Array(readFileSync(filePath))
+  const loadingTask = getDocument({ data: buffer, useSystemFonts: true })
+  const doc = await loadingTask.promise
+  try {
+    const pages: PdfPageText[] = []
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i)
+      const content = await page.getTextContent()
+      const text = content.items
+        .map((item) => ('str' in item ? item.str : ''))
+        .join(' ')
+        .trim()
+      pages.push({ page: i, text })
     }
+    return pages
+  } finally {
+    await loadingTask.destroy()
   }
-  throw lastErr
 }
 
 // ── registration ─────────────────────────────────────────────────

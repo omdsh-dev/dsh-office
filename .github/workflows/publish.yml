@@ -49,11 +49,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # 测试作为可见信号，但暂不阻断发布：pdf 用例在 Node 24 下存在预先失败
-      # （bad XRef entry）。待该用例修复后，删除 continue-on-error 使其成为硬门禁。
       - name: Test
         run: npm test
-        continue-on-error: true
 
       - name: Publish to npm
         run: npm publish --provenance --access public

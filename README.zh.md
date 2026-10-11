@@ -25,7 +25,7 @@
 
 ## 安装与装载
 
-> **兼容性**：要求 `dsh` ≥ `0.1.0-rc.5`（即 `@deepseek-ai/dsh-tools` ≥ `0.1.0-rc.5`）。安装在 `dsh-tools` 为 `0.0.1` 系列的旧核心上会重复安装一份 dsh-tools，导致所有工具调用崩溃（`Cannot read properties of undefined (reading 'prepare')`）。
+> **兼容性**：支持 `dsh` `0.1.0-rc.5`–`0.1.x` 以及 `0.2` 线（含 `0.2.0-rc.2`）。DSH 会把 `@deepseek-ai/dsh-tools` 的 peer 范围拿去和正在运行的 `dsh` 版本比较，所以只声明 `^0.1.0-rc.5` 的 `0.2.4` 在 `0.2.0-rc.2` 上会被拒绝安装。`0.0.1` 系列的旧核心仍然不支持：它会再装一份 dsh-tools，所有工具调用崩溃（`Cannot read properties of undefined (reading 'prepare')`）。
 
 ### 全量装载（14 个工具）
 

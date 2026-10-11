@@ -3,7 +3,10 @@
 
 import { existsSync } from 'node:fs'
 import ExcelJS from 'exceljs'
-import { defineTool, type JsonValue } from '@deepseek-ai/dsh-tools'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+
+/** Lossless JSON value. Local so the plugin typechecks on dsh-tools 0.2, which no longer re-exports this type. */
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
 import type { Context } from '@deepseek-ai/cordis'
 import { textOutput } from './text-output.js'
 import { auditWorkbook, recalcWorkbook } from './excel-audit.js'

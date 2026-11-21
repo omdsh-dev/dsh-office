@@ -6,13 +6,21 @@
 所以**新增版本必须在这里加 `## [<version>] - <date>` 段落**，否则 Release 会退回
 用 git 提交信息兜底。
 
-## [Unreleased]
+## [0.2.7] - 2026-11-21
 
 ### 变更
 
 - `@deepseek-ai/dsh-tools` 的 peer 范围由 `^0.1.0-rc.5 || ^0.2.0-rc.1` 收窄为
-  `^0.2.0-rc.1`，与 `engines.dsh` 的口径一致（`0.1.x` 线从未实测，兼容门实际会拒）。
-  运行时行为不变。
+  `^0.2.0-rc.1`，与 `engines.dsh` 的口径一致。**运行时行为不变**——`0.1.x` 此前
+  就已因 `engines.dsh` 被兼容门拒绝，这次只是让 `package.json` 不再自相矛盾。
+
+### 工程
+
+- 新增提交/PR 质量门禁：typecheck / test / build / lint（此前这些检查只在打 tag
+  发版时跑，问题要等到发布才暴露）。
+- 新增 oxlint、dependabot（盯 docx / exceljs / pdf-* / pptxgenjs 等 8 个渲染依赖）、
+  覆盖率下限（整体 76% lines）。
+- 发布流程改为从本文件提取版本段落生成 GitHub Release notes。
 
 ## [0.2.6] - 2026-11-21
 

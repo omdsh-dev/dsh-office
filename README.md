@@ -27,7 +27,7 @@ Ported from the office plugins of the [Tianshu](https://github.com/Tianshu-Tui) 
 
 ## Install & load
 
-> **Compatibility**: `dsh` `0.1.0-rc.5`–`0.1.x` and the `0.2` line (including `0.2.0-rc.2`). DSH checks the `@deepseek-ai/dsh-tools` peer range against the running `dsh` version, so `0.2.4` (`^0.1.0-rc.5` only) is rejected on `0.2.0-rc.2`. Cores on the `0.0.1` line are still refused: they install a second `dsh-tools` copy and crash every tool call with `Cannot read properties of undefined (reading 'prepare')`.
+> **Compatibility**: the `0.2` patch line (`>=0.2.0-rc.1 <0.3.0-0`, tested on `0.2.2-rc.5`), declared through `engines.dsh` — the host compatibility gate reads that field first and ignores peer ranges. The `0.1.x` line is no longer declared: it was never tested, and `dsh-tools` turned `tools.execute` into a batch contract starting `0.2.2`. Cores on the `0.0.1` line are still refused: they install a second `dsh-tools` copy and crash every tool call with `Cannot read properties of undefined (reading 'prepare')`.
 
 ### Full load (all 14 tools)
 

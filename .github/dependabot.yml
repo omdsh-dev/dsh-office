@@ -1,0 +1,36 @@
+version: 2
+
+# 只盯 Office 文档处理链路的几个大依赖：它们是本包的主要故障源——上游一改
+# API（例如 pdfjs-dist 的 v6 迁移），这里就是成片失败。其余工具类依赖交给
+# 季度性人工更新，避免每周噪声 PR。
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      office-renderers:
+        patterns:
+          - docx
+          - exceljs
+          - pdf-lib
+          - pdfjs-dist
+          - pdfkit
+          - pptxgenjs
+          - mammoth
+          - jszip
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "deps"
+
+  # GitHub Actions 自身也值得跟：workflow 里 pin 的 action 版本过旧同样会失效。
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - ci

@@ -19,6 +19,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm test
       # build 也要跑：tsconfig 的 emit 失败（类型能过但产物写不出）只有 build 会暴露。

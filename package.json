@@ -75,7 +75,7 @@
     "@types/pdfkit": "^0.17.6",
     "@vitest/coverage-v8": "^2.1.9",
     "oxlint": "^1.94.0",
-    "typescript": "^5.6.0",
+    "typescript": "^7.0.2",
     "vitest": "^2.1.0"
   }
 }

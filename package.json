@@ -1,6 +1,6 @@
 {
   "name": "@huiliyi37/dsh-office",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Office document tools (xlsx / pdf / pptx / docx) for DeepSeek Harness: generate, read, and edit spreadsheets, PDFs, presentations, and Word documents",
   "type": "module",
   "main": "lib/index.js",
@@ -20,6 +20,9 @@
     "README.zh.md",
     "LICENSE"
   ],
+  "engines": {
+    "dsh": ">=0.2.0-rc.1 <0.3.0-0"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -61,9 +64,10 @@
     "@deepseek-ai/dsh-tools": "^0.1.0-rc.5 || ^0.2.0-rc.1"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "~4.0.4",
-    "@deepseek-ai/dsh-system-prompt": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/dsh-system-prompt": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-tool-executor-native": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.5",
     "@types/fontkit": "^2.0.9",
     "@types/node": "^26.2.0",
     "@types/pdfkit": "^0.17.6",

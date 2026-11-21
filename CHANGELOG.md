@@ -6,6 +6,14 @@
 所以**新增版本必须在这里加 `## [<version>] - <date>` 段落**，否则 Release 会退回
 用 git 提交信息兜底。
 
+## [0.2.8] - 2026-11-21
+
+### 修复
+
+- 补 `repository` 字段。发布走 OIDC provenance 时 npm 会校验 `repository.url`
+  与 GitHub 仓库是否一致，缺失时报 `E422 Failed to validate repository information`。
+  `0.2.7` 因此未能发布（npm 上不存在该版本），本版接替它。
+
 ## [0.2.7] - 2026-11-21
 
 ### 变更

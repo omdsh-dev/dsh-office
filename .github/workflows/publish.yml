@@ -11,7 +11,8 @@ on:
 # 认证，仓库里无需存任何 NPM_TOKEN，也就不存在 token 泄露 / 90 天过期 / OTP 的问题。
 # 前提：已在 npmjs.com 该包的 Settings -> Trusted Publisher 里绑定本仓库与本文件名。
 permissions:
-  contents: read
+  # contents: write 用于发布后建 GitHub Release（notes 从 CHANGELOG.md 生成）。
+  contents: write
   id-token: write
 
 jobs:
@@ -54,3 +55,20 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --provenance --access public
+
+      # notes 从 CHANGELOG.md 的对应版本段落取；没有该段落时退回 git 自动生成，
+      # 不因为缺一段文档就让发版失败。
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES=/tmp/release-notes.md
+          sed -n "/^## \[$VERSION\]/,/^## \[/p" CHANGELOG.md | sed '\$d' > "$NOTES" || true
+          if [ ! -s "$NOTES" ]; then
+            echo "::notice::CHANGELOG.md 中没有 $VERSION 段落，退回自动生成 notes"
+            gh release create "$GITHUB_REF_NAME" --title "$VERSION" --generate-notes --latest
+          else
+            gh release create "$GITHUB_REF_NAME" --title "$VERSION" --notes-file "$NOTES" --latest
+          fi

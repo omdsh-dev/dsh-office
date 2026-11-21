@@ -1,0 +1,26 @@
+name: CI
+
+# 提交/PR 阶段的质量门禁。publish.yml 在打 tag 时也会跑 typecheck+test，
+# 但那太晚了——问题要等到发版才暴露。2026-11 的适配就是例子：dsh-tools 把
+# tools.execute 改成批量契约、并要求预装 executor，这两处破坏在仓库里没有任何
+# 自动化能发现，只有本地手跑测试才撞出来。这里把同一套门禁前移到每次提交。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # build 也要跑：tsconfig 的 emit 失败（类型能过但产物写不出）只有 build 会暴露。
+      # publish 时 prepack 会重建，但那时已经打 tag 了。
+      - run: npm run build

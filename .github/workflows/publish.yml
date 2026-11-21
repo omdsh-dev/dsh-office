@@ -65,7 +65,11 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           NOTES=/tmp/release-notes.md
-          sed -n "/^## \[$VERSION\]/,/^## \[/p" CHANGELOG.md | sed '\$d' > "$NOTES" || true
+          # 用 awk 而非 sed：方括号在 sed 地址表达式里必须转义，而这一行要穿过
+          # YAML 块标量 + shell 双引号两层，转义极易失效——0.2.8 首次跑就报
+          # `unterminated address regex`，静默退化成自动生成 notes。
+          # awk 的 index() 避开正则，零转义负担。
+          awk -v v="$VERSION" '$0 ~ "^## \\[" { if (p) exit; if (index($0, "[" v "]")) p=1 } p' CHANGELOG.md > "$NOTES" || true
           if [ ! -s "$NOTES" ]; then
             echo "::notice::CHANGELOG.md 中没有 $VERSION 段落，退回自动生成 notes"
             gh release create "$GITHUB_REF_NAME" --title "$VERSION" --generate-notes --latest

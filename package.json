@@ -62,8 +62,8 @@
     "mammoth": "^1.12.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
-    "pdfkit": "^0.15.0",
-    "pptxgenjs": "^3.12.0"
+    "pdfkit": "^0.21.0",
+    "pptxgenjs": "^4.0.1"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
